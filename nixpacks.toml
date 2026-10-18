@@ -1,18 +1,7 @@
-# Railpack / Nixpacks 配置
-# 用于 Railway / Render / Fly.io 等支持 Nixpacks 的平台
-# 因为这是个 monorepo（server/ + web/），需要在仓库根显式告诉构建器构建哪个子项目
+# Railpack / Nixpacks 基础配置
+# 因为 server/package.json 里已经有 prisma postinstall 钩子 + nest-cli.json，
+# 这里只装 Node.js 20 + OpenSSL（Prisma 需要）
+# 实际构建/启动命令交给根目录的 railway.json 控制（更可靠）
 
 [phases.setup]
 nixPkgs = ["nodejs-20_x", "openssl"]
-
-[phases.install]
-cmds = ["cd server && npm ci --include=dev --legacy-peer-deps"]
-
-[phases.build]
-cmds = [
-  "cd server && npx prisma generate",
-  "cd server && npm run build"
-]
-
-[start]
-cmd = "cd server && node dist/main.js"
