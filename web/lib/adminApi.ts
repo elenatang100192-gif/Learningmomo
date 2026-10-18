@@ -194,6 +194,12 @@ export const adminApi = {
       `/api/admin/upload-token`,
       { method: 'POST', body: JSON.stringify({ dir, ext }) },
     ),
+  // 学员专用：录音上传 token（不需 admin 凭据，dir 固定为 hongen/attempts）
+  issueStudentUploadToken: (ext: string) =>
+    request<{ token: string; key: string; publicUrl: string; host: string }>(
+      `/api/admin/student/upload-token`,
+      { method: 'POST', body: JSON.stringify({ ext }) },
+    ),
 
   // 课程
   listCourses: (level?: string) =>

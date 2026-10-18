@@ -4,6 +4,7 @@ import { mediaProxy } from '@/lib/mediaProxy';
 import type { VideoInterrupt, InterruptQuestion, InterruptOption, InterruptQuestionType, VideoContent } from '@/lib/adminApi';
 import { adminApi } from '@/lib/adminApi';
 import { api } from '@/lib/api';
+import { isInAppBrowser, getOpenInBrowserTip } from '@/lib/inAppBrowser';
 
 type Aspect = '16:9' | '1:1' | '9:16';
 
@@ -55,6 +56,8 @@ export function VideoStep({
   // 已触发过的 interruptId，避免用户拖回去重复弹
   const firedRef = useRef<Set<string>>(new Set());
   const [active, setActive] = useState<VideoInterrupt | null>(null);
+  // 内置浏览器提示（在微信/微博里打开时显示）
+  const [showInAppTip, setShowInAppTip] = useState(false);
   // 学员已完成尝试：Map<interruptId, { isCorrect, score }>（取最后一次）
   const attemptsRef = useRef<Map<string, { isCorrect: boolean; score: number }>>(new Map());
   // 标记是否已算过分（避免拖动视频重复结算）
@@ -167,6 +170,12 @@ export function VideoStep({
     for (const it of interrupts) {
       if (firedRef.current.has(it.id)) continue;
       if (t + 0.05 >= it.atSec) {
+        // 内置浏览器（微信/微博等）不支持麦克风, 但仍弹出题目让学员能浏览,
+        // 仅当题目是 SPEECH 时才提示去浏览器打开
+        const tip = getOpenInBrowserTip();
+        const isSpeech = it.question?.type === 'SPEECH';
+        if (tip.show && isSpeech) setShowInAppTip(true);
+
         console.log("[🔒 VideoStep] handleTimeUpdate 触发弹题", { t, atSec: it.atSec, id: it.id, paused: v.paused });
         firedRef.current.add(it.id);
         v.pause();
@@ -402,6 +411,43 @@ export function VideoStep({
           onClose={(r) => handleModalClose(r)}
         />
       )}
+
+      {/* 内置浏览器提示（微信/微博等打开时）— 仅在 SPEECH 弹题时显示 */}
+      {showInAppTip && (
+        <div
+          className="fixed inset-0 z-[9999] grid place-items-center bg-black/60 p-4"
+          onClick={() => setShowInAppTip(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-2xl mb-2 text-center">📱</div>
+            <h3 className="text-lg font-extrabold text-stone-800 mb-2 text-center">
+              请在浏览器中打开
+            </h3>
+            <p className="text-sm text-stone-600 mb-4 text-center">
+              当前是微信内置浏览器，没有麦克风权限。
+            </p>
+            <ol className="text-sm text-stone-700 space-y-2 mb-5">
+              <li className="flex gap-2">
+                <span className="font-extrabold text-amber-500">1.</span>
+                <span>点右上角「···」</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="font-extrabold text-amber-500">2.</span>
+                <span>选择「在浏览器中打开」</span>
+              </li>
+            </ol>
+            <button
+              onClick={() => setShowInAppTip(false)}
+              className="w-full py-3 bg-amber-500 text-white font-extrabold rounded-xl"
+            >
+              知道了
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -536,7 +582,8 @@ function InterruptModal({
 
   async function uploadAudio(blob: Blob): Promise<string> {
     const ext = blob.type.includes('mp4') || blob.type.includes('aac') ? 'm4a' : 'mp3';
-    const tok = await adminApi.issueUploadToken('hongen/attempts', ext);
+    // 学员录音：用学员专用接口（不需要 admin 凭据；dir 固定为 hongen/attempts）
+    const tok = await adminApi.issueStudentUploadToken(ext);
     const form = new FormData();
     form.append('file', blob, 'rec.' + ext);
     form.append('token', tok.token);

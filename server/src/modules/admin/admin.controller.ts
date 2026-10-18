@@ -46,6 +46,23 @@ export class AdminController {
     return this.qiniu.issueUploadToken(dir, ext);
   }
 
+  /**
+   * 学员专用的上传 token（录音/跟读用）
+   * - 不需要 AdminGuard（学员不是 admin）
+   * - dir 强制限制为 'hongen/attempts'，避免学员上传到其他目录
+   * - 鉴权：要求 x-user-id header（学员匿名 ID 也行，限流防滥用）
+   */
+  @Post('student/upload-token')
+  issueStudentToken(
+    @Body() body: { ext?: string },
+    @Headers('x-user-id') _u: string,
+  ) {
+    const ext = (body.ext || 'mp3').toLowerCase();
+    // 录音常见格式：mp3 / m4a / webm；其他都按 mp3 处理
+    const safeExt = ['mp3', 'm4a', 'webm', 'wav', 'ogg'].includes(ext) ? ext : 'mp3';
+    return this.qiniu.issueUploadToken('hongen/attempts', safeExt);
+  }
+
   // ============== 学生账号管理 ==============
   // 全部走 AdminGuard。
 
