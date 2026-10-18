@@ -1,0 +1,198 @@
+// 莫莫英语 - Prisma Schema
+// 表已存在于 nexusmind 库，名字以 Hongen 前缀开头（CREATE IF NOT EXISTS 时建过）。
+// 这里只是 ORM 映射，请勿执行 `prisma db push` / `migrate dev`，避免影响已有表。
+//
+// 用法：
+//   pnpm prisma:generate   # 生成类型
+//   ts-node prisma/seed.ts # (可选) 写入示例数据
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Course {
+  id          String   @id @default(uuid()) @db.Char(36)
+  title       String   @db.VarChar(255)
+  level       String   @db.VarChar(16)
+  description String?  @db.Text
+  coverImage  String?  @db.VarChar(512)
+  introAudioUrl String? @db.VarChar(512) // 课程介绍音频（学生端进入 tab 时自动播放）
+  keywords    String?  @db.Text // JSON array, e.g. ["Hello","Name","Happy"]
+  sceneImageUrl String? @db.VarChar(512) // 【场景画布】一张大图，lesson 气泡摆在这张图上
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true) @db.TinyInt
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
+
+  lessons     Lesson[]
+  placements  LessonPlacement[]
+
+  @@map("HongenCourse")
+  @@index([level, isActive, sortOrder])
+}
+
+model Lesson {
+  id          String  @id @default(uuid()) @db.Char(36)
+  courseId    String  @db.Char(36)
+  title       String  @db.VarChar(255)
+  iconUrl     String? @db.VarChar(512) // 七牛 icon 图地址
+  sortOrder   Int     @default(0)
+  rewardStars Int     @default(3)
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
+
+  course       Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  steps        Step[]
+  userProgress UserProgress[]
+  placement    LessonPlacement?
+
+  @@map("HongenLesson")
+  @@index([courseId, sortOrder])
+}
+
+// 课程场景画布：一个 course 一张大图，每个 lesson 在图上有一个气泡位置。
+// 学员点气泡 → 播 audioUrl → 跳 lesson 详情。
+// LessonPlacement 是 1:1（一个 lesson 只能放在一个 course 的一张图的某个位置上），
+// 实际查询时通过 courseId 把同课程的 lesson 聚合起来渲染。
+model LessonPlacement {
+  id        String   @id @default(uuid()) @db.Char(36)
+  lessonId  String   @db.Char(36) @unique
+  courseId  String   @db.Char(36)
+  x         Float    // 相对坐标 0~1
+  y         Float    // 相对坐标 0~1
+  audioUrl  String?  @db.VarChar(512)
+  color     String?  @db.VarChar(16)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@map("HongenLessonPlacement")
+  @@index([courseId])
+}
+
+model Step {
+  id        String   @id @default(uuid()) @db.Char(36)
+  lessonId  String   @db.Char(36)
+  type      String   @db.VarChar(16) // VIDEO | QUIZ | IMAGE
+  name      String?  @db.VarChar(128) // 步骤名称（学员端进度条显示用；可空）
+  sortOrder Int      @default(0)
+  content   Json
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  attempts StepAttempt[]
+
+  @@map("HongenStep")
+  @@index([lessonId, sortOrder])
+}
+
+// VIDEO step 内嵌弹题点 (interrupt) 的学员回答
+// 每 (userId, stepId, interruptId) 保留多次尝试, 业务取 isCorrect
+model StepAttempt {
+  id           String   @id @default(uuid()) @db.Char(36)
+  userId       String   @db.VarChar(64)
+  stepId       String   @db.Char(36)
+  interruptId  String   @db.VarChar(64)
+  questionType String   @db.VarChar(16) // SINGLE | MULTI | FILL | SPEECH
+  answer       Json     // 选项 ids[] / 文本 / 录音 url 等
+  isCorrect    Boolean
+  score        Int      @default(0) // 0..100 (百分制, 便于 sum)
+  createdAt    DateTime @default(now()) @db.DateTime(3)
+
+  step Step @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@index([userId, stepId])
+  @@index([userId, stepId, interruptId])
+  @@map("HongenStepAttempt")
+}
+
+model UserProgress {
+  id          String   @id @default(uuid()) @db.Char(36)
+  userId      String   @db.VarChar(64)
+  lessonId    String   @db.Char(36)
+  status      String   @default("LOCKED") @db.VarChar(16) // LOCKED | UNLOCKED | COMPLETED
+  starsEarned Int      @default(0)
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([status])
+  @@map("HongenUserProgress")
+}
+
+// 家长端
+model Parent {
+  id           String   @id @default(uuid()) @db.Char(36)
+  phone        String   @db.VarChar(20)
+  nickname     String?  @db.VarChar(64)
+  passwordHash String   @db.VarChar(255)
+  createdAt    DateTime @default(now()) @db.DateTime(3)
+  updatedAt    DateTime @updatedAt @db.DateTime(3)
+
+  children Child[]
+
+  @@unique([phone])
+  @@map("HongenParent")
+}
+
+model Child {
+  id        String   @id @default(uuid()) @db.Char(36)
+  parentId  String   @db.Char(36)
+  nickname  String   @db.VarChar(64)
+  avatar    String?  @db.VarChar(512)
+  ageYears  Int?
+  level     String?  @db.VarChar(16)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
+
+  parent      Parent           @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  childLessons ChildLesson[]
+
+  @@index([parentId])
+  @@map("HongenChild")
+}
+
+model ChildLesson {
+  id          String    @id @default(uuid()) @db.Char(36)
+  childId     String    @db.Char(36)
+  lessonId    String    @db.Char(36)
+  status      String    @default("LOCKED") @db.VarChar(16)
+  starsEarned Int       @default(0)
+  lastSeenAt  DateTime? @db.DateTime(3)
+  createdAt   DateTime  @default(now()) @db.DateTime(3)
+  updatedAt   DateTime  @updatedAt @db.DateTime(3)
+
+  child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, lessonId])
+  @@map("HongenChildLesson")
+}
+
+// 学校管理员手动添加的学生账号。
+// 手机号登录（验证码固定 123456，模拟）。
+// 学员端登录后，前端把 userId 切到 `student:<phone>`，所有进度（UserProgress / StepAttempt）按此 userId 隔离。
+// 学习进度数据本身存放在现有 UserProgress / StepAttempt 表里，不重复建表。
+model StudentAccount {
+  id        String   @id @default(uuid()) @db.Char(36)
+  phone     String   @db.VarChar(20)            // 11 位国内手机号
+  name      String?  @db.VarChar(64)            // 学生姓名（仅展示，不影响登录）
+  grade     String?  @db.VarChar(32)            // 班级/年级（可空）
+  status    String   @default("ACTIVE") @db.VarChar(16) // ACTIVE | DISABLED
+  note      String?  @db.VarChar(255)           // 备注
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
+
+  @@unique([phone])
+  @@map("HongenStudentAccount")
+  @@index([status])
+}

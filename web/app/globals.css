@@ -1,0 +1,311 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #EFEAFE;
+}
+
+html, body {
+  background: #EFEAFE;
+  color: #2E2545;
+  font-family: 'Nunito', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif;
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body { overflow-x: hidden; }
+
+/* 选中文本变黄 */
+::selection { background: #FFCE4D; color: #2E2545; }
+
+/* =========================================================
+   学生端主题 (可汗儿童版风，扁平矢量 · 圆角 · 几乎无阴影)
+   使用方式：在学生端 wrapper 顶层加 className="student-theme"
+   —— 不影响 admin（admin 仍走默认的紫蓝 .page-bg）
+   ========================================================= */
+.student-theme {
+  /* 主色板：淡紫 + 暖黄 + 桃 + 草绿 + 天蓝
+     全部采用纯色平涂（flat fill），无渐变、无强描边 */
+  --stu-bg:       #EFEAFE;   /* 淡淡的浅紫纯色背景（整页底色） */
+  --stu-bg-soft:  #F6F2FF;   /* 更浅的卡片底 */
+  --stu-purple:   #A48AF0;   /* 主紫 */
+  --stu-purple-2: #7E63DE;   /* 深紫（按钮/重点） */
+  --stu-purple-3: #C9B8F7;   /* 浅紫（次要元素） */
+  --stu-yellow:   #FFCE4D;   /* 暖黄 */
+  --stu-orange:   #FF8A5C;   /* 桃橙 */
+  --stu-rose:     #FF8FA3;   /* 桃粉 */
+  --stu-green:    #7CC77B;   /* 草绿 */
+  --stu-sky:      #74C0E5;   /* 天蓝 */
+  --stu-ink:      #1F1838;   /* 主文字（深紫黑） */
+  --stu-ink-soft: #4A3F70;   /* 次级文字（深紫，高对比可读） */
+  --stu-paper:    #FFFFFF;   /* 卡片白 */
+  --stu-line:     #E5DFF5;   /* 描边/分割线（极淡紫） */
+
+  background: var(--stu-bg);
+  color: var(--stu-ink);
+}
+.student-theme ::selection { background: var(--stu-yellow); color: var(--stu-ink); }
+
+/* ===== 学生端页面背景：纯淡紫 ===== */
+.student-theme .page-bg {
+  background: var(--stu-bg);
+  min-height: 100dvh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 顶部毛玻璃 bar：保留交互但弱化（用极淡紫底） */
+.student-theme .glass {
+  background: rgba(255, 255, 255, .7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--stu-line);
+}
+.student-theme .glass-dark {
+  background: rgba(255, 255, 255, .55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--stu-line);
+}
+
+/* ===== 学生端 unit-card：扁平白底（无立体偏移阴影） ===== */
+.student-theme .unit-card {
+  background: var(--stu-paper);
+  border: 1px solid var(--stu-line);
+  border-radius: 24px;
+  outline: none;
+  box-shadow: none;
+}
+
+/* ===== 学生端 bottom-glass：扁平白底胶囊 ===== */
+.student-theme .bottom-glass {
+  background: var(--stu-paper);
+  border-top: 1px solid var(--stu-line);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ===== 学生端 node-card：圆形扁平填色（无黑描边） ===== */
+.student-theme .node-card {
+  @apply rounded-full flex items-center justify-center text-white font-extrabold relative overflow-hidden;
+  border: none;
+  box-shadow: none;
+}
+
+/* ===== 通用"豆豆按钮"（学生端扁平紫版） ===== */
+.student-theme .btn-kid {
+  @apply px-5 py-3 rounded-2xl font-extrabold text-white shadow-none active:translate-y-0.5 transition;
+  background: var(--stu-purple-2);
+  border: none;
+}
+
+/* iPad / 桌面统一栅格 */
+.page-grid {
+  @apply mx-auto w-full max-w-[1180px] px-4 sm:px-6 md:px-8 lg:px-10;
+}
+
+/* ========== 装饰背景元素（学生端淡紫版：弱化/去掉） ========== */
+.deco-circle-outline {
+  position: absolute;
+  border-radius: 9999px;
+  border: 1px solid rgba(164, 138, 240, .15);
+}
+.student-theme .deco-circle-outline {
+  border: none;
+}
+
+.deco-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(2px);
+  display: none;
+}
+.student-theme .deco-blob { display: none; }
+
+.deco-spark {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: rgba(255, 206, 77, .6);
+  border-radius: 1px;
+  transform: rotate(12deg);
+}
+
+/* UNIT 信息卡（全局，扁平白卡片） */
+.unit-card {
+  background: #FFFFFF;
+  box-shadow: none;
+  border: 1px solid #E5DFF5;
+  border-radius: 24px;
+}
+
+/* 底部毛玻璃 tab（全局） */
+.bottom-glass {
+  background: rgba(255, 255, 255, .85);
+  box-shadow: none;
+  border-top: 1px solid #E5DFF5;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* 隐藏滚动条但保留滚动能力 */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* ========== 视频口语实验 · 录音条动画 ========== */
+@keyframes voice-bar {
+  from { transform: scaleY(0.4); }
+  to   { transform: scaleY(1.3); }
+}
+
+/* ========== 课程语音播报卡片 · 嘴部开合 ==========
+   用 transform: scaleY 让现有的小嘴一开一合（不撑大 layout）。
+   节奏跟 .speaking-bar 同步但相位错开：嘴比条形图慢半拍，
+   视觉上像"边说话边有声音"。 */
+@keyframes speaking-mouth {
+  0%   { transform: scaleY(0.05); }
+  18%  { transform: scaleY(1.2); }
+  35%  { transform: scaleY(0.3); }
+  55%  { transform: scaleY(1.4); }
+  72%  { transform: scaleY(0.4); }
+  88%  { transform: scaleY(1.0); }
+  100% { transform: scaleY(0.05); }
+}
+.speaking-mouth {
+  display: inline-block;
+  transform-origin: center center;
+  animation: speaking-mouth 1.4s ease-in-out infinite;
+}
+/* 音频停止时：保留原形状（闭合嘴形），不抖 */
+.speaking-mouth.speaking-mouth--idle {
+  animation: none;
+  transform: scaleY(0.5);
+}
+
+/* ========== 角色（owl.svg 内联）· 嘴动 ==========
+   - 静态小猫嘴 .mascot-mouth-idle：永远显示（V 形小弧线），不说话时看着开心
+   - 红嘴 .mascot-mouth：默认 scaleY(0) 隐藏；说话时 1.4s 慢速循环开合
+   - 说话时静态小猫嘴淡出，避免红嘴和小猫嘴重叠打架
+   SVG 元素需要 transform-box: view-box 才能让 viewBox 像素的
+   transform-origin 正确生效。 */
+
+/* 默认（不说话）：红嘴完全收起，看不到 */
+.mascot-mouth {
+  transform-box: view-box;
+  transform-origin: 181px 222px;
+  transform: scaleY(0);
+  transition: transform 120ms linear;
+  opacity: 0;
+}
+/* 默认静态小猫嘴：完全不透明（显示） */
+.mascot-mouth-idle {
+  opacity: 1;
+  transition: opacity 120ms linear;
+}
+
+/* 父级 is-speaking 时：红嘴开始 1.4s 慢速循环 + 静态小猫嘴淡出 */
+.is-speaking .mascot-mouth {
+  transform-box: view-box;
+  opacity: 1;
+  animation: speaking-mouth 1.4s ease-in-out infinite;
+}
+.is-speaking .mascot-mouth-idle {
+  opacity: 0;
+}
+
+/* 小熊整体放大 + 略微下移，但不超卡片边框（220×220 容器、parent overflow:hidden）
+   - scale(1.12)：放大约 12%
+   - translateY(14px)：相对自己下移 14px
+   - transform-origin: top center 避免被底部裁切过多 */
+.mascot-shift {
+  transform: scale(1.12) translateY(14px);
+  transform-origin: top center;
+}
+
+/* ========== 课程语音播报卡片 · 11 根条形图循环跳动 ==========
+   关键：用 transform: scaleY 而非 height，避开 layout thrash。
+   配合 inline 的 animation-delay，波纹从左到右"流动"。 */
+@keyframes speaking-bar {
+  0%   { transform: scaleY(0.45); }
+  25%  { transform: scaleY(1.25); }
+  50%  { transform: scaleY(0.7);  }
+  75%  { transform: scaleY(1.0);  }
+  100% { transform: scaleY(0.45); }
+}
+.speaking-bar {
+  display: inline-block;
+  transform-origin: bottom center;
+  animation: speaking-bar 1.4s ease-in-out infinite;
+}
+
+/* ========== Test 多选加购动效（参考 Shopping Challenge） ========== */
+@keyframes cart-fly {
+  0%   { transform: scale(1) translate(0, 0); opacity: 1; }
+  60%  { transform: scale(1.3) translate(20%, -30%); opacity: 0.9; }
+  100% { transform: scale(0.6) translate(60%, -120%); opacity: 0; }
+}
+.cart-fly {
+  animation: cart-fly 600ms ease-out forwards;
+}
+
+/* ========== 单词胶囊：完成时打勾的"弹出"动画 ==========
+   配合 inline span className="check-pop" 使用。
+   节奏：0 → 1.3 → 1.0（弹性），并在末端轻微旋转，视觉上是"打勾盖章"感。
+   注意：transform-origin 设为 center，元素自身需 inline-block 才会生效。 */
+@keyframes check-pop {
+  0%   { transform: scale(0)   rotate(-30deg); opacity: 0; }
+  55%  { transform: scale(1.3) rotate(8deg);   opacity: 1; }
+  80%  { transform: scale(0.9) rotate(-4deg);  opacity: 1; }
+  100% { transform: scale(1)   rotate(0deg);   opacity: 1; }
+}
+.check-pop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center;
+  animation: check-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ========== 地图课程节点：空闲时脉冲，提示可点 ==========
+   关键：节点在场景图上的坐标由 inline style 的 left/top 决定，
+   父级用 -translate-x-1/2 -translate-y-1/2 居中。
+   所以这里绝对不能再叠加 transform: scale/translate，否则会
+   让节点跳到错误位置。
+
+   方案：白色光晕 + 亮边呼吸：节点像被光"包"着，一鼓一瘪。
+   - 白环：3px 实白边 → 5px 大白边（向外扩）
+   - 柔光：18px 0.4 → 30px 0
+   - 亮度：1 → 1.12 */
+@keyframes node-pulse {
+  0% {
+    box-shadow:
+      0 0 0 3px rgba(255,255,255,0.85),
+      0 0 0 0 rgba(255,255,255,0.7),
+      0 6px 18px rgba(0,0,0,0.25);
+    filter: brightness(1) saturate(1);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px rgba(255,255,255,1),
+      0 0 0 14px rgba(255,255,255,0),
+      0 8px 20px rgba(0,0,0,0.3);
+    filter: brightness(1.08) saturate(1.1);
+  }
+  100% {
+    box-shadow:
+      0 0 0 3px rgba(255,255,255,0.85),
+      0 0 0 0 rgba(255,255,255,0),
+      0 6px 18px rgba(0,0,0,0.25);
+    filter: brightness(1) saturate(1);
+  }
+}
+.animate-pulse-slow {
+  animation: node-pulse 1.6s ease-in-out infinite;
+}

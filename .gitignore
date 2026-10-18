@@ -1,0 +1,56 @@
+# =====================================================
+# 莫莫英语 - Git Ignore 规则
+# =====================================================
+
+# 敏感信息 - 绝对不能提交
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Next.js 构建产物
+.next/
+out/
+build/
+dist/
+
+# NestJS / 后端构建产物
+server/dist/
+
+# IDE / 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# 临时文件
+*.log
+*.tmp
+*.bak
+.cache/
+
+# 敏感脚本
+scripts/*.sh.local
+
+# 音频相关
+*.mp3
+*.wav
+*.m4a
+*.aac
+
+# 上传文件
+uploads/
+public/uploads/
