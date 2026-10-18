@@ -1,7 +1,9 @@
 # Railpack / Nixpacks 基础配置
 # 因为 server/package.json 里已经有 prisma postinstall 钩子 + nest-cli.json，
-# 这里只装 Node.js 20 + OpenSSL（Prisma 需要）
+# 这里只装 Node.js + OpenSSL（Prisma 需要）
 # 实际构建/启动命令交给根目录的 railway.json 控制（更可靠）
 
 [phases.setup]
-nixPkgs = ["nodejs-20_x", "openssl"]
+# 注意：新版 nixpkgs 用 nodejs_20（带下划线），不是 nodejs-20_x（带连字符）
+# openssl 也从 openssl 改成 openssl 包（新名）/ 或者不写（Nixpacks 默认会带）
+nixPkgs = ["nodejs_20", "openssl"]
